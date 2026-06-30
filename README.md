@@ -41,6 +41,8 @@ pi --model moa/default
 
 `/moa` temporarily switches the active model to `moa/<preset>` for that real run, then restores the previous model after the run completes.
 
+Note: `/moa` is intentionally implemented as an input-triggered one-shot switch, not a registered slash command, so it may not appear in command pickers even though it works.
+
 ### List presets
 
 ```text
