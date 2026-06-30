@@ -22,7 +22,7 @@ So:
 - expect rough edges
 - if you want it better, fork it
 
-I am **not** looking to manage PRs. If people want to improve it, do the normal fork / adapt / publish-your-own-thing flow.
+I am **not** looking to manage PRs. If people want to improve it, do the normal fork / adapt / publish-your-own-thing flow. If you make a better one, I'll probably use yours.
 
 ## What it does
 
