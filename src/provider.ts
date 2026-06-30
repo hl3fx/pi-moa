@@ -6,6 +6,7 @@ const MOA_PROVIDER_ID = "moa";
 const MOA_PROVIDER_NAME = "Mixture of Agents";
 const MOA_VIRTUAL_BASE_URL = "moa://local";
 const MOA_VIRTUAL_API_KEY = "moa-virtual-provider";
+const MOA_CONTEXT_WINDOW = 272000;
 let activeModelRegistry: ModelRegistry | undefined;
 
 function getActiveModelRegistry(): ModelRegistry {
@@ -38,7 +39,7 @@ export async function registerMoaProvider(pi: ExtensionAPI, ctx?: ExtensionConte
       reasoning: false,
       input: ["text"] as ["text"],
       cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
-      contextWindow: 128000,
+      contextWindow: MOA_CONTEXT_WINDOW,
       maxTokens: preset.maxTokens ?? 4096,
     })),
   });

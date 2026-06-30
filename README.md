@@ -2,56 +2,71 @@
 
 `pi-moa` is a Pi-native Mixture of Agents provider inspired by Hermes MoA.
 
-It registers a virtual provider named `moa`. Each configured preset appears as a model under that provider, for example:
+It registers a virtual provider named `moa`, so presets show up as models like:
 
 - `moa/default`
 
-For a MoA turn, reference models provide private advisory context and the configured aggregator acts as the real model for the assistant response and tool calls.
+For a MoA turn:
+- reference models provide private advisory context
+- the configured aggregator is the real acting model
+- tool calls stay in the normal Pi loop
 
-## Usage
+## Status
 
-Persistent MoA session:
+Built for my own use.
+
+I did **not** sit down and carefully review the code line by line. I had Pi build it for my purposes, tested that it works for me, and kept going.
+
+So:
+- use at your own risk
+- expect rough edges
+- if you want it better, fork it
+
+I am **not** looking to manage PRs. If people want to improve it, do the normal fork / adapt / publish-your-own-thing flow.
+
+## What it does
+
+### Persistent MoA session
 
 ```bash
 pi --model moa/default
 ```
 
-One-shot MoA turn from another active model:
+### One-shot MoA turn
 
 ```text
 /moa <prompt>
 /moa --preset <name> <prompt>
 ```
 
-The one-shot `/moa` path temporarily switches the active model to `moa/<preset>` for that real agent run, then restores the previous model after the run completes.
+`/moa` temporarily switches the active model to `moa/<preset>` for that real run, then restores the previous model after the run completes.
 
-List configured presets:
+### List presets
 
 ```text
 /moa-presets
 ```
 
-## Runtime behavior
+## Runtime shape
 
-1. Pi selects `moa/<preset>` as the visible provider/model.
-2. The MoA provider builds an advisory view of the current session context.
-3. Reference models run in parallel without tools.
-4. Reference outputs are injected as private guidance into the aggregator context.
-5. The aggregator model is called with the real Pi tool list.
-6. Aggregator text/tool-call events are streamed back as the `moa` provider response.
-7. If tools run, the next provider call re-enters MoA with the updated context.
+1. Pi selects `moa/<preset>` as the visible model.
+2. Reference models run in parallel without tools.
+3. Their outputs are injected as private guidance.
+4. The aggregator runs as the internal acting model.
+5. Aggregator text/tool-call events are streamed back as the `moa` provider response.
+6. If tools run, the provider re-enters MoA on the next call with updated context.
 
-Important: `/moa` does **not** switch directly to the aggregator model. It switches to `moa/<preset>`; the provider internally delegates acting generation to the aggregator.
+Important: `/moa` does **not** switch directly to the aggregator model. It switches to `moa/<preset>`.
 
 ## Config
 
-Config is JSON and loads from the first available path:
+Config loads from the first available path:
 
 1. trusted project config: `./.pi/moa.json`
 2. global config: `~/.pi/agent/moa.json`
-3. built-in defaults if neither file exists
+3. built-in defaults
 
-Example config:
+Example:
 
 ```json
 {
@@ -74,12 +89,12 @@ Example config:
 
 ## Guardrails
 
-- `provider: "moa"` is rejected inside reference or aggregator slots.
-- Reference models are advisory only and do not receive tools.
-- The aggregator is the internal acting model for the turn/tool loop.
-- The visible selected model remains `moa/<preset>`.
-- One-shot restore waits for the full agent run to end.
+- `provider: "moa"` is rejected inside reference or aggregator slots
+- reference models are advisory only and get no tools
+- the aggregator is the internal acting model for the full turn/tool loop
+- the visible selected model remains `moa/<preset>`
+- one-shot restore waits for full `agent_end`
 
-## Cost / latency warning
+## Cost / latency
 
-MoA fans out the current context to every reference model and then calls the aggregator. It is slower and more expensive than a normal single-model turn.
+MoA fans out current context to multiple models and then runs an aggregator. It is slower and more expensive than a normal single-model turn.
