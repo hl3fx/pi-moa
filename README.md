@@ -68,6 +68,8 @@ Config loads from the first available path:
 2. global config: `~/.pi/agent/moa.json`
 3. built-in defaults
 
+A preset can contain any number of `referenceModels`, but exactly one `aggregator`.
+
 Example:
 
 ```json
@@ -77,7 +79,8 @@ Example:
     "default": {
       "referenceModels": [
         { "provider": "zai", "model": "glm-5.2" },
-        { "provider": "openai-codex", "model": "gpt-5.4" }
+        { "provider": "openai-codex", "model": "gpt-5.4" },
+        { "provider": "anthropic", "model": "claude-sonnet-4-5" }
       ],
       "aggregator": { "provider": "openai-codex", "model": "gpt-5.5" },
       "referenceTemperature": 0.6,
