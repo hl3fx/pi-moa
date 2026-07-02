@@ -69,6 +69,7 @@ Config loads from the first available path:
 3. built-in defaults
 
 A preset can contain any number of `referenceModels`, but exactly one `aggregator`.
+You can also set optional effort levels with `referenceEffort` and `aggregatorEffort` using: `off`, `minimal`, `low`, `medium`, `high`, or `xhigh`.
 
 Example:
 
@@ -85,6 +86,8 @@ Example:
       "aggregator": { "provider": "openai-codex", "model": "gpt-5.5" },
       "referenceTemperature": 0.6,
       "aggregatorTemperature": 0.3,
+      "referenceEffort": "low",
+      "aggregatorEffort": "medium",
       "maxTokens": 4096,
       "enabled": true
     }

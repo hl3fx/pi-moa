@@ -2,17 +2,22 @@ import { readFileSync } from "node:fs";
 import { access as accessAsync, readFile as readFileAsync } from "node:fs/promises";
 import { join } from "node:path";
 import { CONFIG_DIR_NAME, getAgentDir, type ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { ThinkingLevel } from "@earendil-works/pi-ai";
 
 export type MoaModelSlot = {
   provider: string;
   model: string;
 };
 
+export type MoaReasoningLevel = "off" | ThinkingLevel;
+
 export type MoaPreset = {
   referenceModels: MoaModelSlot[];
   aggregator: MoaModelSlot;
   referenceTemperature: number;
   aggregatorTemperature: number;
+  referenceEffort: MoaReasoningLevel;
+  aggregatorEffort: MoaReasoningLevel;
   maxTokens: number;
   enabled: boolean;
 };
@@ -40,6 +45,8 @@ export function defaultPreset(): MoaPreset {
     aggregator: { ...DEFAULT_AGGREGATOR },
     referenceTemperature: 0.6,
     aggregatorTemperature: 0.3,
+    referenceEffort: "off",
+    aggregatorEffort: "off",
     maxTokens: 4096,
     enabled: true,
   };
@@ -76,6 +83,15 @@ function cleanNumber(value: unknown, fallback: number): number {
   return fallback;
 }
 
+function cleanReasoningLevel(value: unknown, fallback: MoaReasoningLevel): MoaReasoningLevel {
+  const normalized = String(value ?? "").trim().toLowerCase();
+  if (!normalized) return fallback;
+  if (normalized === "off" || normalized === "minimal" || normalized === "low" || normalized === "medium" || normalized === "high" || normalized === "xhigh") {
+    return normalized as MoaReasoningLevel;
+  }
+  return fallback;
+}
+
 function normalizePreset(value: unknown): MoaPreset {
   const fallback = defaultPreset();
   if (!isRecord(value)) return fallback;
@@ -91,6 +107,8 @@ function normalizePreset(value: unknown): MoaPreset {
     aggregator,
     referenceTemperature: cleanNumber(value.referenceTemperature, fallback.referenceTemperature),
     aggregatorTemperature: cleanNumber(value.aggregatorTemperature, fallback.aggregatorTemperature),
+    referenceEffort: cleanReasoningLevel(value.referenceEffort, fallback.referenceEffort),
+    aggregatorEffort: cleanReasoningLevel(value.aggregatorEffort, fallback.aggregatorEffort),
     maxTokens: Math.max(1, Math.floor(cleanNumber(value.maxTokens, fallback.maxTokens))),
     enabled: value.enabled === undefined ? fallback.enabled : Boolean(value.enabled),
   };

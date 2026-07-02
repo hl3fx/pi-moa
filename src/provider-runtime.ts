@@ -1,6 +1,6 @@
 import { complete, createAssistantMessageEventStream, stream, type AssistantMessage, type AssistantMessageEvent, type AssistantMessageEventStream, type Context, type Message, type Model, type SimpleStreamOptions, type TextContent, type ToolCall, type ToolResultMessage } from "@earendil-works/pi-ai";
 import type { ExtensionAPI, ModelRegistry } from "@earendil-works/pi-coding-agent";
-import type { MoaModelSlot, MoaPreset } from "./config";
+import type { MoaModelSlot, MoaPreset, MoaReasoningLevel } from "./config";
 import { loadGlobalMoaConfig, resolvePreset, type MoaConfig } from "./config";
 
 const REFERENCE_TOOL_RESULT_BUDGET = 4000;
@@ -147,13 +147,18 @@ async function getModelAuth(modelRegistry: ModelRegistry, slot: MoaModelSlot) {
   return { model, auth };
 }
 
+function toReasoningOption(level: MoaReasoningLevel | undefined): { reasoning?: "minimal" | "low" | "medium" | "high" | "xhigh" } {
+  if (!level || level === "off") return {};
+  return { reasoning: level };
+}
+
 async function runReference(modelRegistry: ModelRegistry, slot: MoaModelSlot, messages: Message[], preset: MoaPreset): Promise<ReferenceOutput> {
   try {
     const { model, auth } = await getModelAuth(modelRegistry, slot);
     const result = await complete(
       model,
       { systemPrompt: REFERENCE_SYSTEM_PROMPT, messages },
-      { apiKey: auth.apiKey, headers: auth.headers, env: auth.env, maxTokens: preset.maxTokens },
+      { apiKey: auth.apiKey, headers: auth.headers, env: auth.env, maxTokens: preset.maxTokens, ...toReasoningOption(preset.referenceEffort) },
     );
     const text = textFromContent(result.content).trim() || `[empty response; stop reason: ${result.stopReason}]`;
     return { label: slotLabel(slot), text };
@@ -243,6 +248,7 @@ export function createMoaStream(modelRegistry: ModelRegistry | (() => ModelRegis
         const aggregatorContext = buildAggregatorContext(context, presetName, preset, references);
         const aggregatorStream = stream(aggregatorModel, aggregatorContext, {
           ...options,
+          ...toReasoningOption(preset.aggregatorEffort),
           apiKey: auth.apiKey,
           headers: auth.headers,
           env: auth.env,

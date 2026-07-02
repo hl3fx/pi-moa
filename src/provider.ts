@@ -36,7 +36,7 @@ export async function registerMoaProvider(pi: ExtensionAPI, ctx?: ExtensionConte
       name: `MoA: ${name}`,
       api: "moa",
       baseUrl: MOA_VIRTUAL_BASE_URL,
-      reasoning: false,
+      reasoning: true,
       input: ["text"] as ["text"],
       cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
       contextWindow: MOA_CONTEXT_WINDOW,
